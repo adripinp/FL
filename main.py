@@ -32,15 +32,6 @@ def set_seeds(SEED):
 def set_global_determinism(SEED):
     set_seeds(SEED=SEED)
     
-    # Uncomment below if limiting cpu treads, may help with determinism. However may slow down training, especially on large models.
-    # tf.config.threading.set_inter_op_parallelism_threads(1)
-    # tf.config.threading.set_intra_op_parallelism_threads(1)
-    
-    # CUDA/GPU users
-    # os.environ['TF_GPU_ALLOCATOR'] = "cuda_malloc_async"
-    # os.environ['TF_DETERMINISTIC_OPS'] = '1'
-    # os.environ['TF_CUDNN_DETERMINISTIC'] = '1'
-    # tf.config.experimental.enable_op_determinism()
 
 SEED = 42   # Change seed as you like. 
 set_global_determinism(SEED=SEED)
@@ -61,10 +52,10 @@ class ModelSimulation():
             loss = 'categorical_crossentropy'
         )
         dataset_config = ConfigDataset(
-            debug = True,                   # DISABLE IF YOU WANT TO PREVENT IMAGE EXAMPLES FROM BEING DISPLAYED BEFORE TRAINING.
-            batch_size = 64,                          
-            image_size = 256,            
-            input_shape = (256,256,1),   
+            debug = False,                   # DISABLE IF YOU WANT TO PREVENT IMAGE EXAMPLES FROM BEING DISPLAYED BEFORE TRAINING.
+            batch_size = 32,                          
+            image_size = 128,            
+            input_shape = (128,128,1),   
             split = 0.25,
             number_of_classes=2
         )
@@ -94,29 +85,6 @@ class ModelSimulation():
             plot_config=plot_config
         ).mergeAll()
         
-        # Below is an example of dataset with subsets. That can be used in federated learning context. 
-        # All given datasets down below are available in ./dataset/download.
-        #
-        # dataset = Dataset(
-        #     [
-        #         (Btumor4600().ID, Btumor4600(), []),    # id 0 ID DATA 
-        #         (Btumor3000().ID, Btumor3000(), []),    # id 1 ID DATA 
-        #         (Balzheimer5100().ID, Balzheimer5100(), []), # id 2 ID DATA 
-        #         (Lpneumonia5200().ID, Lpneumonia5200(), []), # id 3 ID DATA 
-        #         (Lpneumonia5200().ID, Lpneumonia5200(), [[300,500],[3600,3800]]), # id 4 ID DATA (subsamples of total, not used in pre-training) 
-        #         (Btumor4600().ID, Btumor4600(), [[300,500],[3700,3900]]), # id 5 ID DATA (subsamples of total, not used in pre-training)  
-        #         (Balzheimer5100_poisoned().ID, Balzheimer5100_poisoned(), [[1000,1700],[4000,4700]]), # id 6 OOD DATA (poisoned data) (not used in pre-training)
-        #         (Afaces16000().ID, Afaces16000(), [[1,700],[2501,3200]]) # id 7 OOD DATA (not used in pre-training) # Take some two subsets of complete dataset. # [250,750], [4000,4500]
-        #     ],
-        #     dataset_config=dataset_config,
-        #     plot_config=plot_config
-        # )
-        #
-        # Bind local model / client to dataset id / subsets.
-        #
-        # train_data, validation_data, test_data = dataset.get(index i)
-        #
-        
         m.train(train_data, validation_data)     
         m.test(test_data) 
         
@@ -140,7 +108,7 @@ class FederatedSimulation():
         debug = True,
             
         # _________FILE____________
-        save = False,                         # IF save global model after sim. 
+        save = True,                         # IF save global model after sim. 
         load_round = 0,                       # Which specific global model from directory (directory id).
         load_reg = True,                      # Regression from global model after loading pretrained or not.
         load = False,                         # IF load from directory.
@@ -148,12 +116,12 @@ class FederatedSimulation():
         path = "./.env/.saved/",              # Path to saved global model.
             
         # _______SIMULATION________
-        rounds = 25,                          # Number of rounds for sim in federated. 
+        rounds = 40,                          # Number of rounds for sim in federated. 
         ood_round = 26,                       # Round where ood starts.  
         clients = 5,                          # Number of clients in sim. (global model + local models).
         participants = 4,                     # How many participants for current round (randomized between clients). (local models only)
         host_id=0,                            # Host id (index). Should probably always be 0 (global model).
-        client_to_dataset=[[0,1,2,3],[0],[1],[2],[3]]   # local model -> dataset assignment (array index in dataset).
+        client_to_dataset=[[0,1,2,3],[4],[5],[6],[7]]   # local model -> dataset assignment (array index in dataset).
     )
     
     ood_config = ConfigOod(
@@ -185,14 +153,14 @@ class FederatedSimulation():
         debug = False,
             
         # _______SIMULATION________
-        batch_size = 64,                    # Batchsize for datasets.                          
-        image_size = 256,                   # Image size 
-        input_shape = (256,256,1),
+        batch_size = 32,                    # Batchsize for datasets.                          
+        image_size = 128,                   # Image size 
+        input_shape = (128,128,1),
         split = 0.25,                       # Train / validation split.
         number_of_classes = 2               # Number of total classes.
     )
     plot_config = ConfigPlot(
-        plot = False,
+        plot = True,
             
         # __________FILE___________
         path = './.env/plot',                
@@ -212,14 +180,22 @@ class FederatedSimulation():
         # client-to-dataset and id dataset and ood dataset are referenced to this list. 
         dataset = Dataset(
             [
-                (Btumor4600().ID, Btumor4600(), []),    # id 0 ID DATA 
-                (Btumor3000().ID, Btumor3000(), []),    # id 1 ID DATA 
-                (Balzheimer5100().ID, Balzheimer5100(), []), # id 2 ID DATA 
-                (Lpneumonia5200().ID, Lpneumonia5200(), []), # id 3 ID DATA 
-                (Lpneumonia5200().ID, Lpneumonia5200(), [[300,500],[3600,3800]]), # id 4 ID DATA (subsamples of total, not used in pre-training) 
-                (Btumor4600().ID, Btumor4600(), [[300,500],[3700,3900]]), # id 5 ID DATA (subsamples of total, not used in pre-training) 
-                (Balzheimer5100_poisoned().ID, Balzheimer5100_poisoned(), [[1000,1700],[4000,4700]]), # id 6 OOD DATA (poisoned data) (not used in pre-training)
-                (Afaces16000().ID, Afaces16000(), [[1,700],[2501,3200]]) # id 7 OOD DATA (not used in pre-training) # Take some two subsets of complete dataset. # [250,750], [4000,4500]
+                # FULL datasets for SERVER evaluation
+                (Btumor4600().ID, Btumor4600(), []),          
+                (Btumor3000().ID, Btumor3000(), []),          
+                (Balzheimer5100().ID, Balzheimer5100(), []),  
+                (Lpneumonia5200().ID, Lpneumonia5200(), []),  
+
+                # SUBSETS for LOCAL training (fast)
+                (Btumor4600().ID, Btumor4600(), [[0,300],[2500,2800]]),       
+                (Btumor3000().ID, Btumor3000(), [[0,300],[1500,1800]]),       
+                (Balzheimer5100().ID, Balzheimer5100(), [[0,300],[4000,4300]]),
+                (Lpneumonia5200().ID, Lpneumonia5200(), [[0,300],[1500,1800]]),
+
+                #(Lpneumonia5200().ID, Lpneumonia5200(), [[300,500],[3600,3800]]), # id 4 ID DATA (subsamples of total, not used in pre-training) 
+                #(Btumor4600().ID, Btumor4600(), [[300,500],[3700,3900]]), # id 5 ID DATA (subsamples of total, not used in pre-training) 
+                #(Balzheimer5100_poisoned().ID, Balzheimer5100_poisoned(), [[1000,1700],[4000,4700]]), # id 6 OOD DATA (poisoned data) (not used in pre-training)
+                #(Afaces16000().ID, Afaces16000(), [[1,700],[2501,3200]]) # id 7 OOD DATA (not used in pre-training) # Take some two subsets of complete dataset. # [250,750], [4000,4500]
             ],
             dataset_config=self.dataset_config,
             plot_config=self.plot_config
@@ -240,5 +216,5 @@ if __name__ == "__main__":
     # Model. 
     
     #-------------------------
-    sim1 = ModelSimulation()
+    sim1 = FederatedSimulation()
     sim1.run()

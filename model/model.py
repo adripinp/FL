@@ -41,16 +41,16 @@ class Model:
         model = Sequential()
             
         model.add(InputLayer(input_shape=self.dataset_config.input_shape, batch_size=self.dataset_config.batch_size))
-        model.add(Conv2D(16, 16, activation=self.model_config.activation)) # 16
+        model.add(Conv2D(16, (3,3), activation=self.model_config.activation)) # 16
         model.add(MaxPooling2D())
             
-        model.add(Conv2D(16, 16, activation=self.model_config.activation)) # 32 
+        model.add(Conv2D(16, (3,3), activation=self.model_config.activation)) # 32 
         model.add(MaxPooling2D())
         
-        model.add(Conv2D(16, 16, activation=self.model_config.activation)) # 32 
+        model.add(Conv2D(16, (3,3), activation=self.model_config.activation)) # 32 
         model.add(MaxPooling2D())
             
-        model.add(Conv2D(16, 16, activation=self.model_config.activation)) # 16
+        model.add(Conv2D(16, (3,3), activation=self.model_config.activation)) # 16
         model.add(MaxPooling2D())
             
         model.add(Flatten())
@@ -111,9 +111,9 @@ class Model:
             
     def plot_all(self, test_data, xlabel : str, title : str):
         if(self.acc != None):
-            self.plot.accuracy(self.acc, self.val_acc, self.loss, self.val_loss, xlabel, title)
-        self.plot.confusion_matrix(self.model, test_data, title)
+            self.plot.accuracy(self.acc, self.val_acc, self.loss, self.val_loss, xlabel, title, save_path=self.plot_config.path)
+        self.plot.confusion_matrix(self.model, test_data, title, save_path=self.plot_config.path)
         
     def plot_test(self, xlabel : str, title : str):
-        self.plot.test_accuracy(self.test_accuracy, self.test_loss, xlabel, title)
+        self.plot.test_accuracy(self.test_accuracy, self.test_loss, xlabel, title, save_path=self.plot_config.path)
     

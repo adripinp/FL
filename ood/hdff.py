@@ -34,7 +34,7 @@ class Hdff():
     # - Hyperdimensional computing uses very high dimensional vectors (e.g., 1k-10k)
     #   that can be combined and compared robustly using simple operations like
     #   bundling (addition/superposition) and similarity (cosine or dot-product).
-    # - Neural networks produce features at multiple levels of abstraction. HDFF
+    # - Neural networks produce features at multiple levels of abstraction. HDF
     #   fuses them into a single vector that still reflects the multi-layer structure.
     # - A fixed projection per layer creates a stable mapping so different models
     #   can be compared in the same hypervector space.
